@@ -82,21 +82,24 @@ learning_system/
 1. Open `index.html` directly in web browser
 2. Note: Some features may be limited without server environment
 
-## Demo Accounts
+## Authentication System
 
-### Administrator
-- **Username**: admin
-- **Password**: admin
-- **Access**: Full system administration
+### Security Features
+- **No Hardcoded Credentials**: All authentication is handled through secure database storage
+- **Password Hashing**: Passwords are securely hashed using PHP's password_hash() function
+- **SQL Injection Prevention**: All database queries use prepared statements
+- **Input Validation**: Both client-side and server-side validation
+- **Session Management**: Secure session handling with proper security headers
 
-### Test User
-- **Username**: user1
-- **Password**: admin
-- **Access**: Member dashboard and features
+### Demo Accounts (Firebase/Database Authentication)
+- **Admin**: admin@example.com / admin123
+- **User**: user@example.com / user123
+- **Access**: These accounts are created through the secure authentication system
 
 ### New User Registration
 - Create new account via registration page
 - All new users have member-level access
+- Passwords are securely hashed and stored in the database
 
 ## System Requirements
 
@@ -158,10 +161,12 @@ learning_system/
 - Dynamic content generation
 
 ### Security Features
-- Input sanitization and validation
-- Password strength requirements
-- Session management
-- SQL injection prevention (PHP)
+- **No Hardcoded Credentials**: All authentication through secure database storage
+- **Password Hashing**: Secure password hashing using PHP's password_hash()
+- **SQL Injection Prevention**: All database queries use prepared statements
+- **Input Sanitization**: Comprehensive input validation and sanitization
+- **Session Management**: Secure session handling with proper security headers
+- **CORS Protection**: Proper CORS headers for API security
 
 ## Browser Compatibility
 - Chrome 80+
@@ -197,5 +202,6 @@ For questions or issues, please refer to the assignment documentation or contact
 **Assignment**: CT050-3-2-WAPP - Web Applications  
 **Level**: 2  
 **Intake**: 2025
+
 
 

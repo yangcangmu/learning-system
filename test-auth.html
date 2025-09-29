@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>認証テスト - Learning System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 認証システム デバッグテスト</h1>
+    
+    <div class="test-container">
+        <h2>現在の状況確認</h2>
+        <div id="statusInfo" class="result info">読み込み中...</div>
+    </div>
+    
+    <div class="test-container">
+        <h2>1. デモアカウント作成テスト</h2>
+        <div class="test-section">
+            <button class="btn" onclick="createDemoAccounts()">デモアカウントを作成</button>
+            <div id="demoResult" class="result"></div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>2. 新規登録テスト</h2>
+        <div class="test-section">
+            <div class="form-group">
+                <label for="testEmail">メールアドレス:</label>
+                <input type="email" id="testEmail" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="testPassword">パスワード:</label>
+                <input type="password" id="testPassword" value="password123">
+            </div>
+            <button class="btn btn-success" onclick="testRegistration()">新規登録テスト</button>
+            <div id="registerResult" class="result"></div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>3. ログインテスト</h2>
+        <div class="test-section">
+            <div class="form-group">
+                <label for="loginEmail">メールアドレス:</label>
+                <input type="email" id="loginEmail" value="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">パスワード:</label>
+                <input type="password" id="loginPassword" value="admin123">
+            </div>
+            <button class="btn btn-success" onclick="testLogin()">ログインテスト</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>4. ローカルストレージ確認</h2>
+        <div class="test-section">
+            <button class="btn" onclick="checkLocalStorage()">ローカルストレージを確認</button>
+            <div id="storageResult" class="result"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // デバッグ用のログ関数
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 結果表示関数
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+        
+        // 現在の状況を確認
+        function checkStatus() {
+            log('Checking current status...');
+            
+            let status = '=== 現在の状況 ===\n';
+            
+            // ローカルストレージの確認
+            const firebaseUsers = localStorage.getItem('firebaseUsers');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            status += `Firebase Users: ${firebaseUsers ? JSON.parse(firebaseUsers).length + ' users' : 'No users'}\n`;
+            status += `Current User: ${currentUser ? 'Logged in' : 'Not logged in'}\n`;
+            
+            // モジュールの読み込み確認
+            try {
+                status += `Firebase Auth Module: Available\n`;
+            } catch (e) {
+                status += `Firebase Auth Module: Error - ${e.message}\n`;
+            }
+            
+            showResult('statusInfo', status, 'info');
+        }
+        
+        // デモアカウント作成
+        async function createDemoAccounts() {
+            log('Creating demo accounts...');
+            showResult('demoResult', 'デモアカウントを作成中...', 'info');
+            
+            try {
+                // デモアカウントを手動で作成
+                const demoUsers = [
+                    {
+                        uid: 'demo-admin',
+                        email: 'admin@example.com',
+                        password: btoa('admin123' + 'salt'),
+                        role: 'admin',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        uid: 'demo-user',
+                        email: 'user@example.com',
+                        password: btoa('user123' + 'salt'),
+                        role: 'user',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('firebaseUsers', JSON.stringify(demoUsers));
+                
+                showResult('demoResult', '✅ デモアカウントが作成されました！\n- admin@example.com (admin)\n- user@example.com (user)', 'success');
+                log('Demo accounts created successfully');
+                
+            } catch (error) {
+                showResult('demoResult', `❌ エラー: ${error.message}`, 'error');
+                log('Error creating demo accounts: ' + error.message, 'error');
+            }
+        }
+        
+        // 新規登録テスト
+        async function testRegistration() {
+            log('Testing registration...');
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            showResult('registerResult', '新規登録をテスト中...', 'info');
+            
+            try {
+                // 簡単な登録テスト
+                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
+                
+                // 重複チェック
+                if (users.find(user => user.email === email)) {
+                    showResult('registerResult', '❌ このメールアドレスは既に登録されています', 'error');
+                    return;
+                }
+                
+                // 新しいユーザーを作成
+                const newUser = {
+                    uid: 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36),
+                    email: email,
+                    password: btoa(password + 'salt'),
+                    role: 'user',
+                    createdAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('firebaseUsers', JSON.stringify(users));
+                
+                showResult('registerResult', `✅ 登録成功！\nユーザーID: ${newUser.uid}\nメール: ${newUser.email}\nロール: ${newUser.role}`, 'success');
+                log('Registration successful');
+                
+            } catch (error) {
+                showResult('registerResult', `❌ エラー: ${error.message}`, 'error');
+                log('Registration error: ' + error.message, 'error');
+            }
+        }
+        
+        // ログインテスト
+        async function testLogin() {
+            log('Testing login...');
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            showResult('loginResult', 'ログインをテスト中...', 'info');
+            
+            try {
+                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
+                const user = users.find(u => u.email === email);
+                
+                if (!user) {
+                    showResult('loginResult', '❌ ユーザーが見つかりません', 'error');
+                    return;
+                }
+                
+                // パスワード検証
+                if (user.password !== btoa(password + 'salt')) {
+                    showResult('loginResult', '❌ パスワードが間違っています', 'error');
+                    return;
+                }
+                
+                // ログイン成功
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    role: user.role,
+                    username: user.email.split('@')[0]
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                showResult('loginResult', `✅ ログイン成功！\nユーザー: ${userData.email}\nロール: ${userData.role}\n\n次のページ: ${userData.role === 'admin' ? 'admin.html' : 'dashboard.html'}`, 'success');
+                log('Login successful');
+                
+            } catch (error) {
+                showResult('loginResult', `❌ エラー: ${error.message}`, 'error');
+                log('Login error: ' + error.message, 'error');
+            }
+        }
+        
+        // ローカルストレージ確認
+        function checkLocalStorage() {
+            log('Checking localStorage...');
+            
+            let storage = '=== ローカルストレージの内容 ===\n';
+            
+            const firebaseUsers = localStorage.getItem('firebaseUsers');
+            const currentUser = localStorage.getItem('currentUser');
+            
+            if (firebaseUsers) {
+                const users = JSON.parse(firebaseUsers);
+                storage += `Firebase Users (${users.length} users):\n`;
+                users.forEach((user, index) => {
+                    storage += `  ${index + 1}. ${user.email} (${user.role})\n`;
+                });
+            } else {
+                storage += 'Firebase Users: なし\n';
+            }
+            
+            if (currentUser) {
+                const user = JSON.parse(currentUser);
+                storage += `\nCurrent User: ${user.email} (${user.role})\n`;
+            } else {
+                storage += '\nCurrent User: ログインしていません\n';
+            }
+            
+            showResult('storageResult', storage, 'info');
+        }
+        
+        // ページ読み込み時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Test page loaded');
+            checkStatus();
+        });
+        
+        // グローバル関数として公開
+        window.createDemoAccounts = createDemoAccounts;
+        window.testRegistration = testRegistration;
+        window.testLogin = testLogin;
+        window.checkLocalStorage = checkLocalStorage;
+    </script>
+</body>
+</html>

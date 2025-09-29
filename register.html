@@ -120,7 +120,7 @@
                     <div class="error" id="confirmPasswordError"></div>
                 </div>
                 
-                <button type="submit" id="registerBtn">Create Account</button>
+                <button type="button" id="registerBtn" onclick="alert('ボタンがクリックされました！'); handleRegistration();">Create Account</button>
             </form>
             
             <div class="form-footer">
@@ -130,78 +130,184 @@
         </div>
     </div>
     
-    <script src="js/validation.js"></script>
-    <script src="js/main.js"></script>
-    <script type="module">
-        import { createUser } from './js/firebase-auth.js';
+    <script>
+        // デバッグ用のログ関数
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // デモアカウント作成
+        function createDemoAccounts() {
+            log('Creating demo accounts...');
+            
+            try {
+                const demoUsers = [
+                    {
+                        uid: 'demo-admin',
+                        email: 'admin@example.com',
+                        password: btoa('admin123' + 'salt'),
+                        role: 'admin',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        uid: 'demo-user',
+                        email: 'user@example.com',
+                        password: btoa('user123' + 'salt'),
+                        role: 'user',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('firebaseUsers', JSON.stringify(demoUsers));
+                log('Demo accounts created successfully');
+                
+            } catch (error) {
+                log('Error creating demo accounts: ' + error.message, 'error');
+            }
+        }
+        
+        // 新規登録処理（グローバル関数）
+        window.handleRegistration = async function() {
+            log('Handling registration...');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            
+            log('Email: ' + email);
+            log('Password length: ' + password.length);
+            
+            // Clear previous errors
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
+            document.getElementById('confirmPasswordError').textContent = '';
+            
+            // Validation
+            let isValid = true;
+            
+            // Email validation
+            if (!email) {
+                document.getElementById('emailError').textContent = 'Email is required';
+                isValid = false;
+            } else if (!isValidEmail(email)) {
+                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                isValid = false;
+            }
+            
+            // Password validation
+            if (!password) {
+                document.getElementById('passwordError').textContent = 'Password is required';
+                isValid = false;
+            } else if (password.length < 6) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+                isValid = false;
+            }
+            
+            // Confirm password validation
+            if (!confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Please confirm your password';
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                log('Validation failed');
+                return;
+            }
+            
+            log('Validation passed, creating account...');
+            
+            if (registerBtn) {
+                registerBtn.textContent = 'Creating Account...';
+                registerBtn.disabled = true;
+            }
+            
+            try {
+                // 簡単な登録処理（デバッグページと同じロジック）
+                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
+                
+                // 重複チェック
+                if (users.find(user => user.email === email)) {
+                    alert('このメールアドレスは既に登録されています');
+                    return;
+                }
+                
+                // 新しいユーザーを作成
+                const newUser = {
+                    uid: 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36),
+                    email: email,
+                    password: btoa(password + 'salt'),
+                    role: 'user',
+                    createdAt: new Date().toISOString()
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('firebaseUsers', JSON.stringify(users));
+                
+                log('Registration successful');
+                alert('Account created successfully! You can now login.');
+                window.location.href = 'login.html';
+                
+            } catch (error) {
+                log('Registration error: ' + error.message, 'error');
+                alert('Registration failed: ' + error.message);
+            } finally {
+                if (registerBtn) {
+                    registerBtn.textContent = 'Create Account';
+                    registerBtn.disabled = false;
+                }
+            }
+        };
+        
+        // Email validation function
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
         
         // Registration process
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            log('Register page loaded');
+            
+            // デモアカウントを作成
+            createDemoAccounts();
+            
+            // ページ読み込み完了を確認
+            log('Page fully loaded, setting up event listeners...');
+            
+            const registerForm = document.getElementById('registerForm');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            if (!registerForm) {
+                log('Register form not found!', 'error');
+                return;
+            }
+            
+            // Form submit event
+            registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const registerBtn = document.getElementById('registerBtn');
-                
-                // Clear previous errors
-                document.getElementById('emailError').textContent = '';
-                document.getElementById('passwordError').textContent = '';
-                document.getElementById('confirmPasswordError').textContent = '';
-                
-                // Validation
-                let isValid = true;
-                
-                // Email validation
-                if (!email) {
-                    document.getElementById('emailError').textContent = 'Email is required';
-                    isValid = false;
-                } else if (!isValidEmail(email)) {
-                    document.getElementById('emailError').textContent = 'Please enter a valid email address';
-                    isValid = false;
-                }
-                
-                // Password validation
-                if (!password) {
-                    document.getElementById('passwordError').textContent = 'Password is required';
-                    isValid = false;
-                } else if (password.length < 6) {
-                    document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
-                    isValid = false;
-                }
-                
-                // Confirm password validation
-                if (!confirmPassword) {
-                    document.getElementById('confirmPasswordError').textContent = 'Please confirm your password';
-                    isValid = false;
-                } else if (password !== confirmPassword) {
-                    document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
-                    isValid = false;
-                }
-                
-                if (isValid) {
-                    registerBtn.textContent = 'Creating Account...';
-                    registerBtn.disabled = true;
-                    
-                    try {
-                        // Try Firebase registration
-                        const result = await createUser(email, password);
-                        
-                        if (result.success) {
-                            alert('Account created successfully! You can now login.');
-                            window.location.href = 'login.html';
-                        } else {
-                            alert('Registration failed: ' + result.error);
-                        }
-                    } catch (error) {
-                        alert('Registration failed: ' + error.message);
-                    } finally {
-                        registerBtn.textContent = 'Create Account';
-                        registerBtn.disabled = false;
-                    }
-                }
+                log('Form submitted');
+                await window.handleRegistration();
             });
+            
+            // Button click event (backup)
+            if (registerBtn) {
+                registerBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    log('Button clicked');
+                    await window.handleRegistration();
+                });
+                
+                // さらに確実にするため、onclickも設定
+                registerBtn.onclick = function(e) {
+                    e.preventDefault();
+                    log('Button onclick');
+                    window.handleRegistration();
+                };
+            }
             
             // Password strength indicator
             document.getElementById('password').addEventListener('input', function() {

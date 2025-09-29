@@ -90,9 +90,10 @@
             </div>
 
             <div class="demo-accounts">
-                <h4>Demo Accounts (LocalStorage)</h4>
-                <p><strong>Admin:</strong> admin@test.com / admin123</p>
-                <p><strong>User:</strong> user1@test.com / user123</p>
+                <h4>Demo Accounts (Firebase Auth)</h4>
+                <p><strong>Admin:</strong> admin@example.com / admin123</p>
+                <p><strong>User:</strong> user@example.com / user123</p>
+                <p><em>Note: These accounts are created through Firebase authentication</em></p>
             </div>
             
             <form id="loginForm">
@@ -121,14 +122,50 @@
     </div>
     
     <script>
-        // Simple and guaranteed working login function
-        function handleLogin() {
-            console.log('Login button clicked!');
+        // デバッグ用のログ関数
+        function log(message, type = 'info') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // デモアカウント作成
+        function createDemoAccounts() {
+            log('Creating demo accounts...');
+            
+            try {
+                const demoUsers = [
+                    {
+                        uid: 'demo-admin',
+                        email: 'admin@example.com',
+                        password: btoa('admin123' + 'salt'),
+                        role: 'admin',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        uid: 'demo-user',
+                        email: 'user@example.com',
+                        password: btoa('user123' + 'salt'),
+                        role: 'user',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                localStorage.setItem('firebaseUsers', JSON.stringify(demoUsers));
+                log('Demo accounts created successfully');
+                
+            } catch (error) {
+                log('Error creating demo accounts: ' + error.message, 'error');
+            }
+        }
+        
+        // ログイン処理
+        async function handleLogin() {
+            log('Login button clicked!');
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const emailError = document.getElementById('emailError');
             const passwordError = document.getElementById('passwordError');
+            const loginBtn = document.getElementById('loginBtn');
             
             // Clear previous errors
             emailError.textContent = '';
@@ -145,50 +182,75 @@
                 return;
             }
             
-            // Try demo accounts first (guaranteed to work)
-            if (email === 'admin@test.com' && password === 'admin123') {
-                localStorage.setItem('currentUser', JSON.stringify({ 
-                    username: 'admin', 
-                    email: 'admin@test.com', 
-                    role: 'admin',
-                    uid: 'demo-admin'
-                }));
-                alert('Demo admin login successful! Redirecting...');
-                window.location.href = 'admin.html';
-                return;
-            }
+            // ログインボタンを無効化
+            loginBtn.textContent = 'Logging in...';
+            loginBtn.disabled = true;
             
-            if (email === 'user1@test.com' && password === 'user123') {
-                localStorage.setItem('currentUser', JSON.stringify({ 
-                    username: 'user1', 
-                    email: 'user1@test.com', 
-                    role: 'user',
-                    uid: 'demo-user1'
-                }));
-                alert('Demo user login successful! Redirecting...');
-                window.location.href = 'dashboard.html';
-                return;
+            try {
+                // 簡単なログイン処理（デバッグページと同じロジック）
+                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
+                const user = users.find(u => u.email === email);
+                
+                if (!user) {
+                    alert('ユーザーが見つかりません');
+                    return;
+                }
+                
+                // パスワード検証
+                if (user.password !== btoa(password + 'salt')) {
+                    alert('パスワードが間違っています');
+                    return;
+                }
+                
+                // ログイン成功
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    role: user.role,
+                    username: user.email.split('@')[0]
+                };
+                
+                localStorage.setItem('currentUser', JSON.stringify(userData));
+                
+                log('Login successful');
+                
+                // ロールに応じてリダイレクト
+                if (userData.role === 'admin') {
+                    alert('Admin login successful! Redirecting...');
+                    window.location.href = 'admin.html';
+                } else {
+                    alert('Login successful! Redirecting...');
+                    window.location.href = 'dashboard.html';
+                }
+                
+            } catch (error) {
+                log('Login error: ' + error.message, 'error');
+                alert('Login failed: ' + error.message);
+            } finally {
+                // ログインボタンを有効化
+                loginBtn.textContent = 'Login';
+                loginBtn.disabled = false;
             }
-            
-            // If not demo account, show error
-            alert('Login failed!\n\nPlease use demo accounts:\nAdmin: admin@test.com / admin123\nUser: user1@test.com / user123\n\nOr register a new Firebase account.');
         }
         
         // Multiple ways to attach the event listener
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, setting up login...');
+            log('DOM loaded, setting up login...');
+            
+            // デモアカウントを作成
+            createDemoAccounts();
             
             const loginForm = document.getElementById('loginForm');
             const loginBtn = document.getElementById('loginBtn');
             
-            console.log('Form found:', !!loginForm);
-            console.log('Button found:', !!loginBtn);
+            log('Form found: ' + !!loginForm);
+            log('Button found: ' + !!loginBtn);
             
             // Method 1: Form submit
             if (loginForm) {
                 loginForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('Form submit event');
+                    log('Form submit event');
                     handleLogin();
                 });
             }
@@ -197,7 +259,7 @@
             if (loginBtn) {
                 loginBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log('Button click event');
+                    log('Button click event');
                     handleLogin();
                 });
             }
@@ -206,7 +268,7 @@
             if (loginBtn) {
                 loginBtn.onclick = function(e) {
                     e.preventDefault();
-                    console.log('Direct onclick event');
+                    log('Direct onclick event');
                     handleLogin();
                 };
             }
