@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Learning System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Internal styles example */
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+        
+        .dashboard-nav {
+            background: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+        }
+        
+        .nav-tabs li a {
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .nav-tabs li a:hover,
+        .nav-tabs li a.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+        
+        .main-content {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            padding: 2rem;
+            height: fit-content;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .bookmark-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .bookmark-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .bookmark-info h4 {
+            margin: 0 0 0.25rem 0;
+            color: #2c3e50;
+        }
+        
+        .bookmark-info p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .bookmark-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 1rem;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .goal-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #667eea;
+        }
+        
+        .goal-item h4 {
+            margin: 0 0 0.5rem 0;
+            color: #2c3e50;
+        }
+        
+        .goal-item p {
+            margin: 0 0 1rem 0;
+            color: #6c757d;
+        }
+        
+        .goal-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .goal-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .goal-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .goal-status.completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h2>Learning System</h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="dashboard-header">
+            <div class="container">
+                <h1>Dashboard</h1>
+                <p>Welcome back! Here's your learning progress overview.</p>
+            </div>
+        </section>
+        
+        <div class="container">
+            <div class="dashboard-nav">
+                <ul class="nav-tabs">
+                    <li><a href="#" class="active" onclick="switchTab('bookmarks')">My Bookmarks</a></li>
+                    <li><a href="#" onclick="switchTab('notes')">My Notes</a></li>
+                    <li><a href="#" onclick="switchTab('goals')">My Goals</a></li>
+                </ul>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="main-content">
+                    <!-- Bookmarks Tab -->
+                    <div id="bookmarksTab" class="tab-content active">
+                        <h2>My Bookmarks</h2>
+                        <div id="bookmarksList">
+                            <!-- Bookmarks will be loaded here -->
+                        </div>
+                        <div id="emptyBookmarks" class="empty-state" style="display: none;">
+                            <h3>No bookmarks yet</h3>
+                            <p>Start exploring resources and bookmark your favorites!</p>
+                            <a href="resources.html" class="btn">Browse Resources</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes Tab -->
+                    <div id="notesTab" class="tab-content">
+                        <h2>My Notes</h2>
+                        <form id="noteForm">
+                            <div class="form-group">
+                                <label for="noteTitle">Note Title:</label>
+                                <input type="text" id="noteTitle" name="noteTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="noteContent">Note Content:</label>
+                                <textarea id="noteContent" name="noteContent" required></textarea>
+                            </div>
+                            <button type="submit" class="btn">Add Note</button>
+                        </form>
+                        <div id="notesList">
+                            <!-- Notes will be loaded here -->
+                        </div>
+                        <div id="emptyNotes" class="empty-state" style="display: none;">
+                            <h3>No notes yet</h3>
+                            <p>Start taking notes to organize your learning!</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Goals Tab -->
+                    <div id="goalsTab" class="tab-content">
+                        <h2>My Goals</h2>
+                        <form id="goalForm">
+                            <div class="form-group">
+                                <label for="goalTitle">Goal Title:</label>
+                                <input type="text" id="goalTitle" name="goalTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="goalDescription">Goal Description:</label>
+                                <textarea id="goalDescription" name="goalDescription" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="goalDeadline">Target Date:</label>
+                                <input type="date" id="goalDeadline" name="goalDeadline" required>
+                            </div>
+                            <button type="submit" class="btn">Add Goal</button>
+                        </form>
+                        <div id="goalsList">
+                            <!-- Goals will be loaded here -->
+                        </div>
+                        <div id="emptyGoals" class="empty-state" style="display: none;">
+                            <h3>No goals yet</h3>
+                            <p>Set learning goals to track your progress!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <h3>Quick Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3 id="bookmarkCount">0</h3>
+                            <p>Bookmarks</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="noteCount">0</h3>
+                            <p>Notes</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="goalCount">0</h3>
+                            <p>Goals</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Quick Actions</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <a href="resources.html" class="btn">Browse Resources</a>
+                        <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Learning System. All rights reserved.</p>
+            <p>Web Applications Assignment - CT050-3-2-WAPP</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Check login state
+        function checkLoginState() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (!currentUser) {
+                alert('Please login first.');
+                window.location.href = 'login.html';
+                return false;
+            }
+            return currentUser;
+        }
+        
+        // Update navigation based on login state
+        function updateNavigation() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (currentUser) {
+                // User is logged in - show Dashboard and Logout
+                navMenu.innerHTML = `
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                `;
+            } else {
+                // User is not logged in - show Login and Register
+                navMenu.innerHTML = `
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                `;
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            alert('Logged out successfully.');
+            window.location.href = 'index.html';
+        }
+        
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-tabs a').forEach(nav => {
+                nav.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.classList.add('active');
+            
+            // Load data for the selected tab
+            if (tabName === 'bookmarks') {
+                loadBookmarks();
+            } else if (tabName === 'notes') {
+                loadNotes();
+            } else if (tabName === 'goals') {
+                loadGoals();
+            }
+        }
+        
+        // Load bookmarks from localStorage
+        function loadBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
+            const bookmarksList = document.getElementById('bookmarksList');
+            const emptyBookmarks = document.getElementById('emptyBookmarks');
+            
+            if (bookmarks.length === 0) {
+                bookmarksList.style.display = 'none';
+                emptyBookmarks.style.display = 'block';
+            } else {
+                bookmarksList.style.display = 'block';
+                emptyBookmarks.style.display = 'none';
+                
+                bookmarksList.innerHTML = bookmarks.map(bookmark => `
+                    <div class="bookmark-item">
+                        <div class="bookmark-info">
+                            <h4>${bookmark.title}</h4>
+                            <p>Category: ${bookmark.category} | Added: ${bookmark.date}</p>
+                        </div>
+                        <div class="bookmark-actions">
+                            <button class="btn-small btn-danger" onclick="removeBookmark(${bookmark.id})">Remove</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStats();
+        }
+        
+        // Load notes from localStorage
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
+            const notesList = document.getElementById('notesList');
+            const emptyNotes = document.getElementById('emptyNotes');
+            
+            if (notes.length === 0) {
+                notesList.style.display = 'none';
+                emptyNotes.style.display = 'block';
+            } else {
+                notesList.style.display = 'block';
+                emptyNotes.style.display = 'none';
+                
+                notesList.innerHTML = notes.map((note, index) => `
+                    <div class="goal-item">
+                        <h4>${note.title}</h4>
+                        <p>${note.content}</p>
+                        <div class="goal-meta">
+                            <span>Created: ${note.date}</span>
+                            <button class="btn-small btn-danger" onclick="deleteNote(${index})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStats();
+        }
+        
+        // Load goals from localStorage
+        function loadGoals() {
+            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+            const goalsList = document.getElementById('goalsList');
+            const emptyGoals = document.getElementById('emptyGoals');
+            
+            if (goals.length === 0) {
+                goalsList.style.display = 'none';
+                emptyGoals.style.display = 'block';
+            } else {
+                goalsList.style.display = 'block';
+                emptyGoals.style.display = 'none';
+                
+                goalsList.innerHTML = goals.map((goal, index) => `
+                    <div class="goal-item">
+                        <h4>${goal.title}</h4>
+                        <p>${goal.description}</p>
+                        <div class="goal-meta">
+                            <span>Target: ${goal.deadline}</span>
+                            <span class="goal-status ${goal.completed ? 'completed' : 'active'}">
+                                ${goal.completed ? 'Completed' : 'Active'}
+                            </span>
+                            <button class="btn-small btn-danger" onclick="deleteGoal(${index})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStats();
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
+            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
+            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+            
+            document.getElementById('bookmarkCount').textContent = bookmarks.length;
+            document.getElementById('noteCount').textContent = notes.length;
+            document.getElementById('goalCount').textContent = goals.length;
+        }
+        
+        // Add note
+        function addNote(title, content) {
+            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
+            const newNote = {
+                title: title,
+                content: content,
+                date: new Date().toISOString().split('T')[0]
+            };
+            notes.push(newNote);
+            localStorage.setItem('userNotes', JSON.stringify(notes));
+            loadNotes();
+        }
+        
+        // Add goal
+        function addGoal(title, description, deadline) {
+            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+            const newGoal = {
+                title: title,
+                description: description,
+                deadline: deadline,
+                completed: false,
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+            goals.push(newGoal);
+            localStorage.setItem('userGoals', JSON.stringify(goals));
+            loadGoals();
+        }
+        
+        // Remove bookmark
+        function removeBookmark(id) {
+            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
+            const updatedBookmarks = bookmarks.filter(bookmark => bookmark.id !== id);
+            localStorage.setItem('userBookmarks', JSON.stringify(updatedBookmarks));
+            loadBookmarks();
+        }
+        
+        // Delete note
+        function deleteNote(index) {
+            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
+            notes.splice(index, 1);
+            localStorage.setItem('userNotes', JSON.stringify(notes));
+            loadNotes();
+        }
+        
+        // Delete goal
+        function deleteGoal(index) {
+            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+            goals.splice(index, 1);
+            localStorage.setItem('userGoals', JSON.stringify(goals));
+            loadGoals();
+        }
+        
+        // Export data
+        function exportData() {
+            const data = {
+                bookmarks: JSON.parse(localStorage.getItem('userBookmarks') || '[]'),
+                notes: JSON.parse(localStorage.getItem('userNotes') || '[]'),
+                goals: JSON.parse(localStorage.getItem('userGoals') || '[]'),
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'learning-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = checkLoginState();
+            if (!currentUser) return;
+            
+            // Update navigation to show Dashboard and Logout
+            updateNavigation();
+            
+            // Load initial data
+            loadBookmarks();
+            
+            // Note form submission
+            document.getElementById('noteForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('noteTitle').value;
+                const content = document.getElementById('noteContent').value;
+                addNote(title, content);
+                document.getElementById('noteForm').reset();
+            });
+            
+            // Goal form submission
+            document.getElementById('goalForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const title = document.getElementById('goalTitle').value;
+                const description = document.getElementById('goalDescription').value;
+                const deadline = document.getElementById('goalDeadline').value;
+                addGoal(title, description, deadline);
+                document.getElementById('goalForm').reset();
+            });
+        });
+    </script>
+</body>
+</html>

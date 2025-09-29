@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning System - Home</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Inline styles example */
+        .hero h1 {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeIn 2s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h2>Learning System</h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="resources.html">Resources</a></li>
+                    <li><a href="login.html" id="loginLink">Login</a></li>
+                    <li><a href="register.html" id="registerLink">Register</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="hero">
+            <h1>Web-based Learning System</h1>
+            <p>Efficiently manage and utilize digital learning resources</p>
+            <div class="hero-buttons">
+                <a href="resources.html" class="btn btn-primary">Browse Resources</a>
+                <a href="register.html" class="btn btn-secondary">Register Now</a>
+            </div>
+        </section>
+        
+        <section class="features">
+            <h2>Key Features</h2>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Resource Browsing</h3>
+                    <p>Browse learning resources freely without registration. Various categories of materials are available.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">👤</div>
+                    <h3>Personal Management</h3>
+                    <p>After registration, you can use bookmark features, personal notes, and manage favorite resources.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Admin Features</h3>
+                    <p>Administrators can manage users and resources, and operate the entire system.</p>
+                </article>
+            </div>
+        </section>
+        
+        <section class="stats">
+            <h2>System Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3 id="resourceCount">25</h3>
+                    <p>Learning Resources</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="userCount">150</h3>
+                    <p>Registered Users</p>
+                </div>
+                <div class="stat-item">
+                    <h3 id="categoryCount">6</h3>
+                    <p>Categories</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Learning System. All rights reserved.</p>
+            <p>Web Applications Assignment - CT050-3-2-WAPP</p>
+        </div>
+    </footer>
+    
+    <script src="js/main.js"></script>
+    <script>
+        // Check login state and update navigation
+        function updateNavigation() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const loginLink = document.getElementById('loginLink');
+            const registerLink = document.getElementById('registerLink');
+            
+            if (currentUser) {
+                // User is logged in
+                loginLink.textContent = 'Dashboard';
+                loginLink.href = 'dashboard.html';
+                registerLink.textContent = 'Logout';
+                registerLink.href = '#';
+                registerLink.onclick = function() {
+                    localStorage.removeItem('currentUser');
+                    alert('Logged out successfully.');
+                    location.reload();
+                };
+            } else {
+                // User is not logged in
+                loginLink.textContent = 'Login';
+                loginLink.href = 'login.html';
+                registerLink.textContent = 'Register';
+                registerLink.href = 'register.html';
+            }
+        }
+        
+        // 統計データの更新（デモ用）
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavigation();
+            
+            // アニメーション効果で統計を更新
+            setTimeout(() => {
+                // 実際のデータに基づく統計
+                const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+                const totalUsers = registeredUsers.length + 2; // +2 for admin and user1
+                
+                document.getElementById('resourceCount').textContent = '6';
+                document.getElementById('userCount').textContent = totalUsers.toString();
+                document.getElementById('categoryCount').textContent = '5';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Learning System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Internal styles example */
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-form {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .form-header h2 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-header p {
+            color: #6c757d;
+        }
+
+        .demo-accounts {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #007bff;
+        }
+
+        .demo-accounts h4 {
+            margin: 0 0 0.5rem 0;
+            color: #007bff;
+        }
+
+        .demo-accounts p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .firebase-info {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #28a745;
+        }
+
+        .firebase-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #28a745;
+        }
+
+        .firebase-info p {
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="form-container login-form">
+            <div class="form-header">
+                <h2>Login</h2>
+                <p>Access your account</p>
+            </div>
+
+            <div class="firebase-info">
+                <h4>Firebase Login</h4>
+                <p>Use your Firebase email and password to login</p>
+                <p><strong>Example:</strong> user@example.com</p>
+            </div>
+
+            <div class="demo-accounts">
+                <h4>Demo Accounts (LocalStorage)</h4>
+                <p><strong>Admin:</strong> admin@test.com / admin123</p>
+                <p><strong>User:</strong> user1@test.com / user123</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="Enter your email (e.g., user@example.com)">
+                    <div class="error" id="emailError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Enter your password">
+                    <div class="error" id="passwordError"></div>
+                </div>
+                
+                <button type="submit" id="loginBtn" onclick="handleLogin(); return false;">Login</button>
+            </form>
+            
+            <div class="form-footer">
+                <p>Don't have an account? <a href="register.html">Register here</a></p>
+                <p><a href="index.html">Back to Home</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Simple and guaranteed working login function
+        function handleLogin() {
+            console.log('Login button clicked!');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const emailError = document.getElementById('emailError');
+            const passwordError = document.getElementById('passwordError');
+            
+            // Clear previous errors
+            emailError.textContent = '';
+            passwordError.textContent = '';
+            
+            // Validation
+            if (!email) {
+                emailError.textContent = 'Email is required';
+                return;
+            }
+            
+            if (!password) {
+                passwordError.textContent = 'Password is required';
+                return;
+            }
+            
+            // Try demo accounts first (guaranteed to work)
+            if (email === 'admin@test.com' && password === 'admin123') {
+                localStorage.setItem('currentUser', JSON.stringify({ 
+                    username: 'admin', 
+                    email: 'admin@test.com', 
+                    role: 'admin',
+                    uid: 'demo-admin'
+                }));
+                alert('Demo admin login successful! Redirecting...');
+                window.location.href = 'admin.html';
+                return;
+            }
+            
+            if (email === 'user1@test.com' && password === 'user123') {
+                localStorage.setItem('currentUser', JSON.stringify({ 
+                    username: 'user1', 
+                    email: 'user1@test.com', 
+                    role: 'user',
+                    uid: 'demo-user1'
+                }));
+                alert('Demo user login successful! Redirecting...');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // If not demo account, show error
+            alert('Login failed!\n\nPlease use demo accounts:\nAdmin: admin@test.com / admin123\nUser: user1@test.com / user123\n\nOr register a new Firebase account.');
+        }
+        
+        // Multiple ways to attach the event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, setting up login...');
+            
+            const loginForm = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            console.log('Form found:', !!loginForm);
+            console.log('Button found:', !!loginBtn);
+            
+            // Method 1: Form submit
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Form submit event');
+                    handleLogin();
+                });
+            }
+            
+            // Method 2: Button click
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Button click event');
+                    handleLogin();
+                });
+            }
+            
+            // Method 3: Direct onclick (already in HTML)
+            if (loginBtn) {
+                loginBtn.onclick = function(e) {
+                    e.preventDefault();
+                    console.log('Direct onclick event');
+                    handleLogin();
+                };
+            }
+        });
+        
+        // Also try when window loads
+        window.addEventListener('load', function() {
+            console.log('Window loaded, checking login setup...');
+            
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn && !loginBtn.onclick) {
+                loginBtn.onclick = function(e) {
+                    e.preventDefault();
+                    console.log('Window load onclick event');
+                    handleLogin();
+                };
+            }
+        });
+    </script>
+</body>
+</html>

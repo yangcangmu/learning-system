@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Resources - Learning System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Internal styles example */
+        .resources-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+            border-radius: 15px;
+        }
+        
+        .search-filters {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .resource-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+        
+        .resource-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .resource-image {
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #6c757d;
+        }
+        
+        .resource-content {
+            padding: 1.5rem;
+        }
+        
+        .resource-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .resource-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+        
+        .resource-description {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .resource-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .resource-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-bookmark {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .btn-bookmark:hover {
+            background: #dee2e6;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 3rem;
+        }
+        
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #dee2e6;
+            background: white;
+            color: #6c757d;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .pagination button:hover,
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h2>Learning System</h2>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html" class="active">Resources</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <section class="resources-header">
+            <h1>Learning Resources</h1>
+            <p>Browse and explore our comprehensive collection of learning materials</p>
+        </section>
+        
+        <section class="search-filters">
+            <h3>Filters</h3>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="searchInput">Search:</label>
+                    <input type="text" id="searchInput" placeholder="Search resources...">
+                </div>
+                <div class="filter-group">
+                    <label for="categoryFilter">Category:</label>
+                    <select id="categoryFilter">
+                        <option value="">All Categories</option>
+                        <option value="programming">Programming</option>
+                        <option value="design">Design</option>
+                        <option value="business">Business</option>
+                        <option value="language">Language</option>
+                        <option value="science">Science</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button type="button" id="searchBtn" class="btn">Search</button>
+                </div>
+            </div>
+        </section>
+        
+        <section class="resources-content">
+            <div class="resource-grid" id="resourceGrid">
+                <!-- Resource cards will be dynamically inserted here -->
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- Pagination will be dynamically inserted here -->
+            </div>
+        </section>
+    </main>
+    
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Learning System. All rights reserved.</p>
+            <p>Web Applications Assignment - CT050-3-2-WAPP</p>
+        </div>
+    </footer>
+    
+    <script src="js/main.js"></script>
+    <script>
+        // Check login state
+        function checkLoginState() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (!currentUser) {
+                alert('Please login first.');
+                window.location.href = 'login.html';
+                return false;
+            }
+            return currentUser;
+        }
+        
+        // Update navigation based on login state
+        function updateNavigation() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (currentUser) {
+                // User is logged in - show Dashboard and Logout
+                navMenu.innerHTML = `
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html" class="active">Resources</a></li>
+                    <li><a href="dashboard.html">Dashboard</a></li>
+                    <li><a href="#" onclick="logout()">Logout</a></li>
+                `;
+            } else {
+                // User is not logged in - show Login and Register
+                navMenu.innerHTML = `
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="resources.html" class="active">Resources</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                `;
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('currentUser');
+            alert('Logged out successfully.');
+            window.location.href = 'index.html';
+        }
+    
+    // Sample resource data
+    const sampleResources = [
+        {
+            id: 1,
+            title: "HTML5 Fundamentals",
+            description: "Learn the basic elements and semantic markup of HTML5 for modern web development.",
+            category: "programming",
+            categoryName: "Programming",
+            icon: "🌐",
+            author: "System Admin",
+            date: "2025-01-15"
+        },
+        {
+            id: 2,
+            title: "CSS3 Animations",
+            description: "Master CSS3 animation effects and create engaging user interfaces.",
+            category: "programming",
+            categoryName: "Programming",
+            icon: "🎨",
+            author: "System Admin",
+            date: "2025-01-14"
+        },
+        {
+            id: 3,
+            title: "JavaScript Essentials",
+            description: "Learn JavaScript fundamentals including syntax, DOM manipulation, and modern features.",
+            category: "programming",
+            categoryName: "Programming",
+            icon: "⚡",
+            author: "System Admin",
+            date: "2025-01-13"
+        },
+        {
+            id: 4,
+            title: "UI/UX Design Principles",
+            description: "Understand effective user interface and user experience design methodologies.",
+            category: "design",
+            categoryName: "Design",
+            icon: "🎯",
+            author: "System Admin",
+            date: "2025-01-12"
+        },
+        {
+            id: 5,
+            title: "Project Management Basics",
+            description: "Learn effective project management techniques and tools for successful delivery.",
+            category: "business",
+            categoryName: "Business",
+            icon: "📊",
+            author: "System Admin",
+            date: "2025-01-11"
+        },
+        {
+            id: 6,
+            title: "Business English Communication",
+            description: "Master practical English expressions for professional business environments.",
+            category: "language",
+            categoryName: "Language",
+            icon: "🗣️",
+            author: "System Admin",
+            date: "2025-01-10"
+        }
+    ];
+    
+    let currentPage = 1;
+    const resourcesPerPage = 6;
+    let filteredResources = [...sampleResources];
+    
+    // Generate resource card
+    function createResourceCard(resource) {
+        return `
+            <div class="resource-card">
+                <div class="resource-image">
+                    ${resource.icon}
+                </div>
+                <div class="resource-content">
+                    <div class="resource-category">${resource.categoryName}</div>
+                    <h3 class="resource-title">${resource.title}</h3>
+                    <p class="resource-description">${resource.description}</p>
+                    <div class="resource-meta">
+                        <span>Author: ${resource.author}</span>
+                        <span>Date: ${resource.date}</span>
+                    </div>
+                    <div class="resource-actions">
+                        <button class="btn-small btn-view" onclick="viewResource(${resource.id})">
+                            View Details
+                        </button>
+                        <button class="btn-small btn-bookmark" onclick="bookmarkResource(${resource.id})">
+                            📌 Bookmark
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Display resources grid
+    function displayResources(resources, page = 1) {
+        const startIndex = (page - 1) * resourcesPerPage;
+        const endIndex = startIndex + resourcesPerPage;
+        const pageResources = resources.slice(startIndex, endIndex);
+        
+        const resourceGrid = document.getElementById('resourceGrid');
+        resourceGrid.innerHTML = pageResources.map(createResourceCard).join('');
+        
+        // Display pagination
+        displayPagination(resources.length, page);
+    }
+    
+    // Display pagination
+    function displayPagination(totalResources, currentPage) {
+        const totalPages = Math.ceil(totalResources / resourcesPerPage);
+        const pagination = document.getElementById('pagination');
+        
+        if (totalPages <= 1) {
+            pagination.innerHTML = '';
+            return;
+        }
+        
+        let paginationHTML = '';
+        
+        // Previous page button
+        if (currentPage > 1) {
+            paginationHTML += `<button onclick="changePage(${currentPage - 1})">Previous</button>`;
+        }
+        
+        // Page number buttons
+        for (let i = 1; i <= totalPages; i++) {
+            const isActive = i === currentPage ? 'active' : '';
+            paginationHTML += `<button class="${isActive}" onclick="changePage(${i})">${i}</button>`;
+        }
+        
+        // Next page button
+        if (currentPage < totalPages) {
+            paginationHTML += `<button onclick="changePage(${currentPage + 1})">Next</button>`;
+        }
+        
+        pagination.innerHTML = paginationHTML;
+    }
+    
+    // Change page
+    function changePage(page) {
+        currentPage = page;
+        displayResources(filteredResources, currentPage);
+    }
+    
+    // Resource search and filtering
+    function filterResources() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const categoryFilter = document.getElementById('categoryFilter').value;
+        
+        filteredResources = sampleResources.filter(resource => {
+            const matchesSearch = resource.title.toLowerCase().includes(searchTerm) ||
+                               resource.description.toLowerCase().includes(searchTerm);
+            const matchesCategory = !categoryFilter || resource.category === categoryFilter;
+            
+            return matchesSearch && matchesCategory;
+        });
+        
+        currentPage = 1;
+        displayResources(filteredResources, currentPage);
+    }
+    
+    // View resource details
+    function viewResource(id) {
+        const resource = sampleResources.find(r => r.id === id);
+        if (resource) {
+            alert(`Resource Details:\n\nTitle: ${resource.title}\nDescription: ${resource.description}\nCategory: ${resource.categoryName}\nAuthor: ${resource.author}\nDate: ${resource.date}`);
+        }
+    }
+    
+    // Bookmark resource
+    function bookmarkResource(id) {
+        const resource = sampleResources.find(r => r.id === id);
+        if (resource) {
+            // Get current user's bookmarks
+            const userBookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
+            
+            // Check if already bookmarked
+            const existingBookmark = userBookmarks.find(b => b.id === id);
+            if (existingBookmark) {
+                alert(`${resource.title} is already bookmarked!`);
+                return;
+            }
+            
+            // Add to bookmarks
+            const bookmark = {
+                id: resource.id,
+                title: resource.title,
+                category: resource.categoryName,
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            userBookmarks.push(bookmark);
+            localStorage.setItem('userBookmarks', JSON.stringify(userBookmarks));
+            
+            alert(`${resource.title} has been bookmarked!`);
+        }
+    }
+    
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const currentUser = checkLoginState();
+            if (!currentUser) return;
+            
+            // Update navigation to show Dashboard and Logout
+            updateNavigation();
+            
+            displayResources(filteredResources, currentPage);
+            
+            document.getElementById('searchBtn').addEventListener('click', filterResources);
+            document.getElementById('searchInput').addEventListener('keyup', filterResources);
+            document.getElementById('categoryFilter').addEventListener('change', filterResources);
+        });
+</script>
+</body>
+</html>
