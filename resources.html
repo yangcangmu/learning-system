@@ -160,6 +160,11 @@
             border-color: #667eea;
         }
     </style>
+    
+    <!-- Firebase SDK (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header>
@@ -228,6 +233,32 @@
     
     <script src="js/main.js"></script>
     <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyBDoSzi8ZYYMq-Bu_RNMVNxNScAl2l5EJA",
+            authDomain: "learning-system-dce48.firebaseapp.com",
+            databaseURL: "https://learning-system-dce48-default-rtdb.firebaseio.com",
+            projectId: "learning-system-dce48",
+            storageBucket: "learning-system-dce48.firebasestorage.app",
+            messagingSenderId: "1074717728059",
+            appId: "1:1074717728059:web:0ea742775544b04c74eb1e",
+            measurementId: "G-2WHRD1G6QT"
+        };
+
+        // Firebase初期化
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log('✅ Firebase初期化成功');
+        } catch (error) {
+            console.error('❌ Firebase初期化エラー:', error);
+        }
+
         // Check login state
         function checkLoginState() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -441,32 +472,52 @@
         }
     }
     
-    // Bookmark resource
-    function bookmarkResource(id) {
+    // Bookmark resource - Firestore version
+    async function bookmarkResource(id) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if (!currentUser) {
+            alert('ブックマークするにはログインが必要です');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        if (!db) {
+            alert('Firebaseが初期化されていません');
+            return;
+        }
+        
         const resource = sampleResources.find(r => r.id === id);
-        if (resource) {
-            // Get current user's bookmarks
-            const userBookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
-            
+        if (!resource) return;
+        
+        try {
             // Check if already bookmarked
-            const existingBookmark = userBookmarks.find(b => b.id === id);
-            if (existingBookmark) {
-                alert(`${resource.title} is already bookmarked!`);
+            const existingBookmark = await db.collection('bookmarks')
+                .where('userId', '==', currentUser.uid)
+                .where('resourceId', '==', id)
+                .get();
+            
+            if (!existingBookmark.empty) {
+                alert(`${resource.title} は既にブックマーク済みです`);
                 return;
             }
             
-            // Add to bookmarks
-            const bookmark = {
-                id: resource.id,
+            // Add to Firestore
+            await db.collection('bookmarks').add({
+                userId: currentUser.uid,
+                resourceId: resource.id,
                 title: resource.title,
                 category: resource.categoryName,
-                date: new Date().toISOString().split('T')[0]
-            };
+                date: new Date().toISOString().split('T')[0],
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
             
-            userBookmarks.push(bookmark);
-            localStorage.setItem('userBookmarks', JSON.stringify(userBookmarks));
+            console.log('✅ ブックマーク追加成功');
+            alert(`${resource.title} をブックマークしました！`);
             
-            alert(`${resource.title} has been bookmarked!`);
+        } catch (error) {
+            console.error('ブックマークエラー:', error);
+            alert('ブックマークの追加に失敗しました');
         }
     }
     

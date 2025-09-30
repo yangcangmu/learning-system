@@ -399,12 +399,14 @@
     <script>
         // Firebase設定
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY_HERE",
-            authDomain: "your-project-id.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyBDoSzi8ZYYMq-Bu_RNMVNxNScAl2l5EJA",
+            authDomain: "learning-system-dce48.firebaseapp.com",
+            databaseURL: "https://learning-system-dce48-default-rtdb.firebaseio.com",
+            projectId: "learning-system-dce48",
+            storageBucket: "learning-system-dce48.firebasestorage.app",
+            messagingSenderId: "1074717728059",
+            appId: "1:1074717728059:web:0ea742775544b04c74eb1e",
+            measurementId: "G-2WHRD1G6QT"
         };
 
         // Firebase初期化
@@ -502,173 +504,326 @@
             }
         }
         
-        // Load bookmarks from localStorage
-        function loadBookmarks() {
-            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
+        // Load bookmarks from Firestore
+        async function loadBookmarks() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) return;
+            
             const bookmarksList = document.getElementById('bookmarksList');
             const emptyBookmarks = document.getElementById('emptyBookmarks');
             
-            if (bookmarks.length === 0) {
-                bookmarksList.style.display = 'none';
-                emptyBookmarks.style.display = 'block';
-            } else {
-                bookmarksList.style.display = 'block';
-                emptyBookmarks.style.display = 'none';
+            try {
+                const snapshot = await db.collection('bookmarks')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
                 
-                bookmarksList.innerHTML = bookmarks.map(bookmark => `
-                    <div class="bookmark-item">
-                        <div class="bookmark-info">
-                            <h4>${bookmark.title}</h4>
-                            <p>Category: ${bookmark.category} | Added: ${bookmark.date}</p>
+                if (snapshot.empty) {
+                    bookmarksList.style.display = 'none';
+                    emptyBookmarks.style.display = 'block';
+                } else {
+                    bookmarksList.style.display = 'block';
+                    emptyBookmarks.style.display = 'none';
+                    
+                    const bookmarks = [];
+                    snapshot.forEach(doc => {
+                        bookmarks.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    bookmarksList.innerHTML = bookmarks.map(bookmark => `
+                        <div class="bookmark-item">
+                            <div class="bookmark-info">
+                                <h4>${bookmark.title}</h4>
+                                <p>Category: ${bookmark.category || 'General'} | Added: ${bookmark.date}</p>
+                            </div>
+                            <div class="bookmark-actions">
+                                <button class="btn-small btn-danger" onclick="removeBookmark('${bookmark.id}')">Remove</button>
+                            </div>
                         </div>
-                        <div class="bookmark-actions">
-                            <button class="btn-small btn-danger" onclick="removeBookmark(${bookmark.id})">Remove</button>
-                        </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+                
+                updateStats();
+            } catch (error) {
+                console.error('ブックマーク読み込みエラー:', error);
             }
-            
-            updateStats();
         }
         
-        // Load notes from localStorage
-        function loadNotes() {
-            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
+        // Load notes from Firestore
+        async function loadNotes() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) return;
+            
             const notesList = document.getElementById('notesList');
             const emptyNotes = document.getElementById('emptyNotes');
             
-            if (notes.length === 0) {
-                notesList.style.display = 'none';
-                emptyNotes.style.display = 'block';
-            } else {
-                notesList.style.display = 'block';
-                emptyNotes.style.display = 'none';
+            try {
+                const snapshot = await db.collection('notes')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
                 
-                notesList.innerHTML = notes.map((note, index) => `
-                    <div class="goal-item">
-                        <h4>${note.title}</h4>
-                        <p>${note.content}</p>
-                        <div class="goal-meta">
-                            <span>Created: ${note.date}</span>
-                            <button class="btn-small btn-danger" onclick="deleteNote(${index})">Delete</button>
+                if (snapshot.empty) {
+                    notesList.style.display = 'none';
+                    emptyNotes.style.display = 'block';
+                } else {
+                    notesList.style.display = 'block';
+                    emptyNotes.style.display = 'none';
+                    
+                    const notes = [];
+                    snapshot.forEach(doc => {
+                        notes.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    notesList.innerHTML = notes.map(note => `
+                        <div class="goal-item">
+                            <h4>${note.title}</h4>
+                            <p>${note.content}</p>
+                            <div class="goal-meta">
+                                <span>Created: ${note.date}</span>
+                                <button class="btn-small btn-danger" onclick="deleteNote('${note.id}')">Delete</button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+                
+                updateStats();
+            } catch (error) {
+                console.error('ノート読み込みエラー:', error);
             }
-            
-            updateStats();
         }
         
-        // Load goals from localStorage
-        function loadGoals() {
-            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+        // Load goals from Firestore
+        async function loadGoals() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) return;
+            
             const goalsList = document.getElementById('goalsList');
             const emptyGoals = document.getElementById('emptyGoals');
             
-            if (goals.length === 0) {
-                goalsList.style.display = 'none';
-                emptyGoals.style.display = 'block';
-            } else {
-                goalsList.style.display = 'block';
-                emptyGoals.style.display = 'none';
+            try {
+                const snapshot = await db.collection('goals')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
                 
-                goalsList.innerHTML = goals.map((goal, index) => `
-                    <div class="goal-item">
-                        <h4>${goal.title}</h4>
-                        <p>${goal.description}</p>
-                        <div class="goal-meta">
-                            <span>Target: ${goal.deadline}</span>
-                            <span class="goal-status ${goal.completed ? 'completed' : 'active'}">
-                                ${goal.completed ? 'Completed' : 'Active'}
-                            </span>
-                            <button class="btn-small btn-danger" onclick="deleteGoal(${index})">Delete</button>
+                if (snapshot.empty) {
+                    goalsList.style.display = 'none';
+                    emptyGoals.style.display = 'block';
+                } else {
+                    goalsList.style.display = 'block';
+                    emptyGoals.style.display = 'none';
+                    
+                    const goals = [];
+                    snapshot.forEach(doc => {
+                        goals.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    goalsList.innerHTML = goals.map(goal => `
+                        <div class="goal-item">
+                            <h4>${goal.title}</h4>
+                            <p>${goal.description}</p>
+                            <div class="goal-meta">
+                                <span>Target: ${goal.deadline}</span>
+                                <span class="goal-status ${goal.completed ? 'completed' : 'active'}">
+                                    ${goal.completed ? 'Completed' : 'Active'}
+                                </span>
+                                <button class="btn-small btn-danger" onclick="deleteGoal('${goal.id}')">Delete</button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+                
+                updateStats();
+            } catch (error) {
+                console.error('ゴール読み込みエラー:', error);
+            }
+        }
+        
+        // Update statistics from Firestore
+        async function updateStats() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) return;
+            
+            try {
+                const bookmarksCount = await db.collection('bookmarks')
+                    .where('userId', '==', currentUser.uid)
+                    .get()
+                    .then(snapshot => snapshot.size);
+                
+                const notesCount = await db.collection('notes')
+                    .where('userId', '==', currentUser.uid)
+                    .get()
+                    .then(snapshot => snapshot.size);
+                
+                const goalsCount = await db.collection('goals')
+                    .where('userId', '==', currentUser.uid)
+                    .get()
+                    .then(snapshot => snapshot.size);
+                
+                document.getElementById('bookmarkCount').textContent = bookmarksCount;
+                document.getElementById('noteCount').textContent = notesCount;
+                document.getElementById('goalCount').textContent = goalsCount;
+            } catch (error) {
+                console.error('統計更新エラー:', error);
+            }
+        }
+        
+        // Add note to Firestore
+        async function addNote(title, content) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) {
+                alert('ログインが必要です');
+                return;
             }
             
-            updateStats();
+            try {
+                await db.collection('notes').add({
+                    userId: currentUser.uid,
+                    title: title,
+                    content: content,
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ ノート追加成功');
+                loadNotes();
+            } catch (error) {
+                console.error('ノート追加エラー:', error);
+                alert('ノートの追加に失敗しました');
+            }
         }
         
-        // Update statistics
-        function updateStats() {
-            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
-            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
-            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
+        // Add goal to Firestore
+        async function addGoal(title, description, deadline) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) {
+                alert('ログインが必要です');
+                return;
+            }
             
-            document.getElementById('bookmarkCount').textContent = bookmarks.length;
-            document.getElementById('noteCount').textContent = notes.length;
-            document.getElementById('goalCount').textContent = goals.length;
+            try {
+                await db.collection('goals').add({
+                    userId: currentUser.uid,
+                    title: title,
+                    description: description,
+                    deadline: deadline,
+                    completed: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ ゴール追加成功');
+                loadGoals();
+            } catch (error) {
+                console.error('ゴール追加エラー:', error);
+                alert('ゴールの追加に失敗しました');
+            }
         }
         
-        // Add note
-        function addNote(title, content) {
-            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
-            const newNote = {
-                title: title,
-                content: content,
-                date: new Date().toISOString().split('T')[0]
-            };
-            notes.push(newNote);
-            localStorage.setItem('userNotes', JSON.stringify(notes));
-            loadNotes();
-        }
-        
-        // Add goal
-        function addGoal(title, description, deadline) {
-            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
-            const newGoal = {
-                title: title,
-                description: description,
-                deadline: deadline,
-                completed: false,
-                createdAt: new Date().toISOString().split('T')[0]
-            };
-            goals.push(newGoal);
-            localStorage.setItem('userGoals', JSON.stringify(goals));
-            loadGoals();
-        }
-        
-        // Remove bookmark
-        function removeBookmark(id) {
-            const bookmarks = JSON.parse(localStorage.getItem('userBookmarks') || '[]');
-            const updatedBookmarks = bookmarks.filter(bookmark => bookmark.id !== id);
-            localStorage.setItem('userBookmarks', JSON.stringify(updatedBookmarks));
-            loadBookmarks();
-        }
-        
-        // Delete note
-        function deleteNote(index) {
-            const notes = JSON.parse(localStorage.getItem('userNotes') || '[]');
-            notes.splice(index, 1);
-            localStorage.setItem('userNotes', JSON.stringify(notes));
-            loadNotes();
-        }
-        
-        // Delete goal
-        function deleteGoal(index) {
-            const goals = JSON.parse(localStorage.getItem('userGoals') || '[]');
-            goals.splice(index, 1);
-            localStorage.setItem('userGoals', JSON.stringify(goals));
-            loadGoals();
-        }
-        
-        // Export data
-        function exportData() {
-            const data = {
-                bookmarks: JSON.parse(localStorage.getItem('userBookmarks') || '[]'),
-                notes: JSON.parse(localStorage.getItem('userNotes') || '[]'),
-                goals: JSON.parse(localStorage.getItem('userGoals') || '[]'),
-                exportDate: new Date().toISOString()
-            };
+        // Remove bookmark from Firestore
+        async function removeBookmark(id) {
+            if (!db) return;
             
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'learning-data.json';
-            a.click();
-            URL.revokeObjectURL(url);
+            try {
+                await db.collection('bookmarks').doc(id).delete();
+                console.log('✅ ブックマーク削除成功');
+                loadBookmarks();
+            } catch (error) {
+                console.error('ブックマーク削除エラー:', error);
+                alert('削除に失敗しました');
+            }
+        }
+        
+        // Delete note from Firestore
+        async function deleteNote(id) {
+            if (!db) return;
+            
+            try {
+                await db.collection('notes').doc(id).delete();
+                console.log('✅ ノート削除成功');
+                loadNotes();
+            } catch (error) {
+                console.error('ノート削除エラー:', error);
+                alert('削除に失敗しました');
+            }
+        }
+        
+        // Delete goal from Firestore
+        async function deleteGoal(id) {
+            if (!db) return;
+            
+            try {
+                await db.collection('goals').doc(id).delete();
+                console.log('✅ ゴール削除成功');
+                loadGoals();
+            } catch (error) {
+                console.error('ゴール削除エラー:', error);
+                alert('削除に失敗しました');
+            }
+        }
+        
+        // Export data from Firestore
+        async function exportData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser || !db) {
+                alert('データのエクスポートにはログインが必要です');
+                return;
+            }
+            
+            try {
+                // Firestoreからすべてのデータを取得
+                const bookmarksSnapshot = await db.collection('bookmarks')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                const notesSnapshot = await db.collection('notes')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                const goalsSnapshot = await db.collection('goals')
+                    .where('userId', '==', currentUser.uid)
+                    .get();
+                
+                // データを配列に変換
+                const bookmarks = [];
+                bookmarksSnapshot.forEach(doc => {
+                    bookmarks.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const notes = [];
+                notesSnapshot.forEach(doc => {
+                    notes.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const goals = [];
+                goalsSnapshot.forEach(doc => {
+                    goals.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // エクスポートデータを作成
+                const data = {
+                    user: {
+                        uid: currentUser.uid,
+                        email: currentUser.email
+                    },
+                    bookmarks: bookmarks,
+                    notes: notes,
+                    goals: goals,
+                    exportDate: new Date().toISOString()
+                };
+                
+                // JSONファイルとしてダウンロード
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `learning-data-${currentUser.email}-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                console.log('✅ データエクスポート成功');
+                
+            } catch (error) {
+                console.error('エクスポートエラー:', error);
+                alert('データのエクスポートに失敗しました');
+            }
         }
         
         // Event listeners

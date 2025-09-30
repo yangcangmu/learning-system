@@ -6,14 +6,14 @@
 // プロジェクト設定 → 全般 → アプリ → SDK setup and configuration から取得できます
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
-    // databaseURL は Realtime Database を使用する場合のみ必要
-    // databaseURL: "https://your-project-id.firebaseio.com"
+    apiKey: "AIzaSyBDoSzi8ZYYMq-Bu_RNMVNxNScAl2l5EJA",
+    authDomain: "learning-system-dce48.firebaseapp.com",
+    databaseURL: "https://learning-system-dce48-default-rtdb.firebaseio.com",
+    projectId: "learning-system-dce48",
+    storageBucket: "learning-system-dce48.firebasestorage.app",
+    messagingSenderId: "1074717728059",
+    appId: "1:1074717728059:web:0ea742775544b04c74eb1e",
+    measurementId: "G-2WHRD1G6QT"
 };
 
 // Firebase設定をエクスポート

@@ -129,12 +129,14 @@
     <script>
         // Firebase設定
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY_HERE",
-            authDomain: "your-project-id.firebaseapp.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyBDoSzi8ZYYMq-Bu_RNMVNxNScAl2l5EJA",
+            authDomain: "learning-system-dce48.firebaseapp.com",
+            databaseURL: "https://learning-system-dce48-default-rtdb.firebaseio.com",
+            projectId: "learning-system-dce48",
+            storageBucket: "learning-system-dce48.firebasestorage.app",
+            messagingSenderId: "1074717728059",
+            appId: "1:1074717728059:web:0ea742775544b04c74eb1e",
+            measurementId: "G-2WHRD1G6QT"
         };
 
         // Firebase初期化
@@ -199,15 +201,27 @@
                 
                 log('✅ Firebase認証成功: ' + user.email);
                 
-                // Firestoreからユーザー情報を取得
-                const userDoc = await db.collection('users').doc(user.uid).get();
+                // 緊急対応: admin@example.com を自動的に管理者にする
                 let userRole = 'user'; // デフォルトロール
                 
-                if (userDoc.exists) {
-                    userRole = userDoc.data().role || 'user';
-                    log('✅ Firestoreからロールを取得: ' + userRole);
+                if (user.email === 'admin@example.com') {
+                    userRole = 'admin';
+                    log('✅ 管理者メールアドレスを検出: admin@example.com → admin ロール');
                 } else {
-                    log('⚠️ Firestoreにユーザー情報がありません。デフォルトロールを使用します。');
+                    // Firestoreからユーザー情報を取得
+                    log('🔍 UID: ' + user.uid);
+                    const userDoc = await db.collection('users').doc(user.uid).get();
+                    
+                    log('🔍 ドキュメント存在: ' + userDoc.exists);
+                    
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        log('🔍 Firestoreデータ: ' + JSON.stringify(data));
+                        userRole = data.role || 'user';
+                        log('✅ Firestoreからロールを取得: ' + userRole);
+                    } else {
+                        log('⚠️ Firestoreにユーザー情報がありません。デフォルトロールを使用します。');
+                    }
                 }
                 
                 // ユーザー情報をローカルストレージに保存
