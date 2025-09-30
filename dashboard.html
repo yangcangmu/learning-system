@@ -256,6 +256,11 @@
             color: #0c5460;
         }
     </style>
+    
+    <!-- Firebase SDK (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header>
@@ -392,6 +397,30 @@
     </footer>
     
     <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase初期化
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log('✅ Firebase初期化成功');
+        } catch (error) {
+            console.error('❌ Firebase初期化エラー:', error);
+        }
+
         // Check login state
         function checkLoginState() {
             const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -427,11 +456,22 @@
             }
         }
         
-        // Logout function
-        function logout() {
-            localStorage.removeItem('currentUser');
-            alert('Logged out successfully.');
-            window.location.href = 'index.html';
+        // Logout function with Firebase
+        async function logout() {
+            try {
+                if (auth) {
+                    await auth.signOut();
+                    console.log('✅ Firebaseからログアウト成功');
+                }
+                localStorage.removeItem('currentUser');
+                alert('ログアウトしました');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('❌ ログアウトエラー:', error);
+                // エラーでもローカルストレージはクリア
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            }
         }
         
         // Tab switching

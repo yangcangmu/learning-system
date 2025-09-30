@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase接続テスト</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 2rem;
+        }
+        
+        .test-section {
+            margin-bottom: 2rem;
+        }
+        
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .test-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        
+        .test-content {
+            flex: 1;
+        }
+        
+        .test-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+        
+        .test-status {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .success .test-icon {
+            color: #28a745;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .error .test-icon {
+            color: #dc3545;
+        }
+        
+        .loading {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .loading .test-icon {
+            color: #ffc107;
+        }
+        
+        .config-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+        
+        .config-display pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .links a {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+        
+        .links a:hover {
+            background: #5a6268;
+        }
+    </style>
+    
+    <!-- Firebase SDK (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase 接続テスト</h1>
+        <p class="subtitle">Firebase設定の確認と接続テスト</p>
+        
+        <div class="test-section">
+            <div class="test-item loading" id="test-sdk">
+                <div class="test-icon">⏳</div>
+                <div class="test-content">
+                    <div class="test-title">Firebase SDK</div>
+                    <div class="test-status">確認中...</div>
+                </div>
+            </div>
+            
+            <div class="test-item loading" id="test-config">
+                <div class="test-icon">⏳</div>
+                <div class="test-content">
+                    <div class="test-title">Firebase 設定</div>
+                    <div class="test-status">確認中...</div>
+                </div>
+            </div>
+            
+            <div class="test-item loading" id="test-init">
+                <div class="test-icon">⏳</div>
+                <div class="test-content">
+                    <div class="test-title">Firebase 初期化</div>
+                    <div class="test-status">確認中...</div>
+                </div>
+            </div>
+            
+            <div class="test-item loading" id="test-auth">
+                <div class="test-icon">⏳</div>
+                <div class="test-content">
+                    <div class="test-title">Authentication</div>
+                    <div class="test-status">確認中...</div>
+                </div>
+            </div>
+            
+            <div class="test-item loading" id="test-firestore">
+                <div class="test-icon">⏳</div>
+                <div class="test-content">
+                    <div class="test-title">Cloud Firestore</div>
+                    <div class="test-status">確認中...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="config-display" id="config-display">
+            <strong>Firebase設定:</strong>
+            <pre id="config-text">読み込み中...</pre>
+        </div>
+        
+        <button class="btn" onclick="runTests()">🔄 再テスト</button>
+        
+        <div class="links">
+            <a href="register.html">新規登録</a>
+            <a href="login.html">ログイン</a>
+            <a href="index.html">ホームへ</a>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase設定（実際の値に置き換えてください）
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
+        let app = null;
+        let auth = null;
+        let db = null;
+        
+        function updateTestStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = 'test-item ' + status;
+            
+            const icon = element.querySelector('.test-icon');
+            const statusText = element.querySelector('.test-status');
+            
+            if (status === 'success') {
+                icon.textContent = '✅';
+            } else if (status === 'error') {
+                icon.textContent = '❌';
+            } else {
+                icon.textContent = '⏳';
+            }
+            
+            statusText.textContent = message;
+        }
+        
+        function displayConfig() {
+            const configText = document.getElementById('config-text');
+            const sanitizedConfig = {
+                apiKey: firebaseConfig.apiKey.substring(0, 10) + '...',
+                authDomain: firebaseConfig.authDomain,
+                projectId: firebaseConfig.projectId,
+                storageBucket: firebaseConfig.storageBucket,
+                messagingSenderId: firebaseConfig.messagingSenderId.substring(0, 6) + '...',
+                appId: firebaseConfig.appId.substring(0, 15) + '...'
+            };
+            
+            configText.textContent = JSON.stringify(sanitizedConfig, null, 2);
+        }
+        
+        async function runTests() {
+            console.log('🧪 テスト開始...');
+            
+            // Test 1: Firebase SDK
+            try {
+                if (typeof firebase !== 'undefined') {
+                    updateTestStatus('test-sdk', 'success', 'Firebase SDK が正常に読み込まれました');
+                } else {
+                    updateTestStatus('test-sdk', 'error', 'Firebase SDK が見つかりません');
+                    return;
+                }
+            } catch (error) {
+                updateTestStatus('test-sdk', 'error', 'エラー: ' + error.message);
+                return;
+            }
+            
+            // Test 2: Firebase Config
+            try {
+                const hasPlaceholders = Object.values(firebaseConfig).some(val => 
+                    typeof val === 'string' && (val.includes('YOUR_') || val.includes('your-project'))
+                );
+                
+                if (hasPlaceholders) {
+                    updateTestStatus('test-config', 'error', '設定にプレースホルダーが残っています。FIREBASE_SETUP.mdを参照してください');
+                } else {
+                    updateTestStatus('test-config', 'success', 'Firebase設定が正しく入力されています');
+                }
+            } catch (error) {
+                updateTestStatus('test-config', 'error', 'エラー: ' + error.message);
+            }
+            
+            // Test 3: Firebase Initialization
+            try {
+                if (!app) {
+                    app = firebase.initializeApp(firebaseConfig);
+                }
+                updateTestStatus('test-init', 'success', 'Firebase が正常に初期化されました');
+            } catch (error) {
+                updateTestStatus('test-init', 'error', 'エラー: ' + error.message);
+                return;
+            }
+            
+            // Test 4: Firebase Authentication
+            try {
+                if (!auth) {
+                    auth = firebase.auth();
+                }
+                
+                // 認証状態を確認
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    updateTestStatus('test-auth', 'success', `認証成功: ${currentUser.email}`);
+                } else {
+                    updateTestStatus('test-auth', 'success', 'Authentication が有効です（未ログイン）');
+                }
+            } catch (error) {
+                updateTestStatus('test-auth', 'error', 'エラー: ' + error.message);
+            }
+            
+            // Test 5: Cloud Firestore
+            try {
+                if (!db) {
+                    db = firebase.firestore();
+                }
+                
+                // 簡単な接続テスト
+                await db.collection('_test_').limit(1).get();
+                updateTestStatus('test-firestore', 'success', 'Firestore に正常に接続しました');
+            } catch (error) {
+                if (error.code === 'permission-denied') {
+                    updateTestStatus('test-firestore', 'success', 'Firestore は有効です（セキュリティルールが適用されています）');
+                } else {
+                    updateTestStatus('test-firestore', 'error', 'エラー: ' + error.message);
+                }
+            }
+            
+            console.log('✅ テスト完了');
+        }
+        
+        // ページロード時にテストを実行
+        window.addEventListener('load', function() {
+            displayConfig();
+            
+            // 少し遅延を入れてからテストを実行
+            setTimeout(() => {
+                runTests();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

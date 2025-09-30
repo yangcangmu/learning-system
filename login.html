@@ -74,6 +74,11 @@
             color: #155724;
         }
     </style>
+    
+    <!-- Firebase SDK (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="login-container">
@@ -122,44 +127,44 @@
     </div>
     
     <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase初期化
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log('✅ Firebase初期化成功');
+        } catch (error) {
+            console.error('❌ Firebase初期化エラー:', error);
+            console.log('⚠️ firebase-config.jsの設定を確認してください');
+        }
+
         // デバッグ用のログ関数
         function log(message, type = 'info') {
             console.log(`[${type.toUpperCase()}] ${message}`);
         }
         
-        // デモアカウント作成
-        function createDemoAccounts() {
-            log('Creating demo accounts...');
-            
-            try {
-                const demoUsers = [
-                    {
-                        uid: 'demo-admin',
-                        email: 'admin@example.com',
-                        password: btoa('admin123' + 'salt'),
-                        role: 'admin',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        uid: 'demo-user',
-                        email: 'user@example.com',
-                        password: btoa('user123' + 'salt'),
-                        role: 'user',
-                        createdAt: new Date().toISOString()
-                    }
-                ];
-                
-                localStorage.setItem('firebaseUsers', JSON.stringify(demoUsers));
-                log('Demo accounts created successfully');
-                
-            } catch (error) {
-                log('Error creating demo accounts: ' + error.message, 'error');
-            }
-        }
-        
-        // ログイン処理
+        // Firebase Authentication を使ったログイン処理
         async function handleLogin() {
-            log('Login button clicked!');
+            log('🔐 ログインボタンがクリックされました');
+            
+            if (!auth) {
+                alert('⚠️ Firebaseが初期化されていません。firebase-config.jsの設定を確認してください。');
+                return;
+            }
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -173,59 +178,81 @@
             
             // Validation
             if (!email) {
-                emailError.textContent = 'Email is required';
+                emailError.textContent = 'メールアドレスを入力してください';
                 return;
             }
             
             if (!password) {
-                passwordError.textContent = 'Password is required';
+                passwordError.textContent = 'パスワードを入力してください';
                 return;
             }
             
             // ログインボタンを無効化
-            loginBtn.textContent = 'Logging in...';
+            loginBtn.textContent = 'ログイン中...';
             loginBtn.disabled = true;
             
             try {
-                // 簡単なログイン処理（デバッグページと同じロジック）
-                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
-                const user = users.find(u => u.email === email);
+                // Firebase Authenticationでログイン
+                log('🔥 Firebase認証を開始...');
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
                 
-                if (!user) {
-                    alert('ユーザーが見つかりません');
-                    return;
+                log('✅ Firebase認証成功: ' + user.email);
+                
+                // Firestoreからユーザー情報を取得
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                let userRole = 'user'; // デフォルトロール
+                
+                if (userDoc.exists) {
+                    userRole = userDoc.data().role || 'user';
+                    log('✅ Firestoreからロールを取得: ' + userRole);
+                } else {
+                    log('⚠️ Firestoreにユーザー情報がありません。デフォルトロールを使用します。');
                 }
                 
-                // パスワード検証
-                if (user.password !== btoa(password + 'salt')) {
-                    alert('パスワードが間違っています');
-                    return;
-                }
-                
-                // ログイン成功
+                // ユーザー情報をローカルストレージに保存
                 const userData = {
                     uid: user.uid,
                     email: user.email,
-                    role: user.role,
+                    role: userRole,
                     username: user.email.split('@')[0]
                 };
                 
                 localStorage.setItem('currentUser', JSON.stringify(userData));
-                
-                log('Login successful');
+                log('✅ ログイン成功');
                 
                 // ロールに応じてリダイレクト
-                if (userData.role === 'admin') {
-                    alert('Admin login successful! Redirecting...');
+                if (userRole === 'admin') {
+                    alert('✅ 管理者としてログインしました！');
                     window.location.href = 'admin.html';
                 } else {
-                    alert('Login successful! Redirecting...');
+                    alert('✅ ログイン成功！');
                     window.location.href = 'dashboard.html';
                 }
                 
             } catch (error) {
-                log('Login error: ' + error.message, 'error');
-                alert('Login failed: ' + error.message);
+                log('❌ ログインエラー: ' + error.message, 'error');
+                
+                let errorMessage = 'ログインに失敗しました: ';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage += 'このメールアドレスは登録されていません。';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage += 'パスワードが間違っています。';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage += 'メールアドレスの形式が無効です。';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage += 'ログイン試行回数が多すぎます。しばらく待ってからお試しください。';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                alert(errorMessage);
+                
             } finally {
                 // ログインボタンを有効化
                 loginBtn.textContent = 'Login';
@@ -233,12 +260,9 @@
             }
         }
         
-        // Multiple ways to attach the event listener
+        // イベントリスナーの設定
         document.addEventListener('DOMContentLoaded', function() {
-            log('DOM loaded, setting up login...');
-            
-            // デモアカウントを作成
-            createDemoAccounts();
+            log('📄 DOM読み込み完了、ログイン設定中...');
             
             const loginForm = document.getElementById('loginForm');
             const loginBtn = document.getElementById('loginBtn');

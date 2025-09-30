@@ -130,53 +130,61 @@
         </div>
     </div>
     
+    <!-- Firebase SDK (CDN) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
     <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase初期化
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log('✅ Firebase初期化成功');
+        } catch (error) {
+            console.error('❌ Firebase初期化エラー:', error);
+            console.log('⚠️ firebase-config.jsの設定を確認してください');
+        }
+        
         // デバッグ用のログ関数
         function log(message, type = 'info') {
             console.log(`[${type.toUpperCase()}] ${message}`);
         }
         
-        // デモアカウント作成
-        function createDemoAccounts() {
-            log('Creating demo accounts...');
-            
-            try {
-                const demoUsers = [
-                    {
-                        uid: 'demo-admin',
-                        email: 'admin@example.com',
-                        password: btoa('admin123' + 'salt'),
-                        role: 'admin',
-                        createdAt: new Date().toISOString()
-                    },
-                    {
-                        uid: 'demo-user',
-                        email: 'user@example.com',
-                        password: btoa('user123' + 'salt'),
-                        role: 'user',
-                        createdAt: new Date().toISOString()
-                    }
-                ];
-                
-                localStorage.setItem('firebaseUsers', JSON.stringify(demoUsers));
-                log('Demo accounts created successfully');
-                
-            } catch (error) {
-                log('Error creating demo accounts: ' + error.message, 'error');
-            }
+        // Email validation function
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
         }
         
-        // 新規登録処理（グローバル関数）
-        window.handleRegistration = async function() {
-            log('Handling registration...');
+        // 新規登録処理（Firebase Authentication使用）
+        async function handleRegistration() {
+            log('📝 新規登録処理を開始...');
+            
+            if (!auth || !db) {
+                alert('⚠️ Firebaseが初期化されていません。firebase-config.jsの設定を確認してください。');
+                return;
+            }
             
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const registerBtn = document.getElementById('registerBtn');
-            
-            log('Email: ' + email);
-            log('Password length: ' + password.length);
             
             // Clear previous errors
             document.getElementById('emailError').textContent = '';
@@ -188,125 +196,117 @@
             
             // Email validation
             if (!email) {
-                document.getElementById('emailError').textContent = 'Email is required';
+                document.getElementById('emailError').textContent = 'メールアドレスを入力してください';
                 isValid = false;
             } else if (!isValidEmail(email)) {
-                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                document.getElementById('emailError').textContent = '有効なメールアドレスを入力してください';
                 isValid = false;
             }
             
             // Password validation
             if (!password) {
-                document.getElementById('passwordError').textContent = 'Password is required';
+                document.getElementById('passwordError').textContent = 'パスワードを入力してください';
                 isValid = false;
             } else if (password.length < 6) {
-                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+                document.getElementById('passwordError').textContent = 'パスワードは6文字以上で入力してください';
                 isValid = false;
             }
             
             // Confirm password validation
             if (!confirmPassword) {
-                document.getElementById('confirmPasswordError').textContent = 'Please confirm your password';
+                document.getElementById('confirmPasswordError').textContent = 'パスワードを再入力してください';
                 isValid = false;
             } else if (password !== confirmPassword) {
-                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                document.getElementById('confirmPasswordError').textContent = 'パスワードが一致しません';
                 isValid = false;
             }
             
             if (!isValid) {
-                log('Validation failed');
+                log('❌ バリデーションエラー');
                 return;
             }
             
-            log('Validation passed, creating account...');
+            log('✅ バリデーション通過、アカウント作成中...');
             
             if (registerBtn) {
-                registerBtn.textContent = 'Creating Account...';
+                registerBtn.textContent = 'アカウント作成中...';
                 registerBtn.disabled = true;
             }
             
             try {
-                // 簡単な登録処理（デバッグページと同じロジック）
-                const users = JSON.parse(localStorage.getItem('firebaseUsers') || '[]');
+                // Firebase Authenticationでユーザー作成
+                log('🔥 Firebase Authenticationでユーザー作成中...');
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
                 
-                // 重複チェック
-                if (users.find(user => user.email === email)) {
-                    alert('このメールアドレスは既に登録されています');
-                    return;
-                }
+                log('✅ ユーザー作成成功: ' + user.email);
                 
-                // 新しいユーザーを作成
-                const newUser = {
-                    uid: 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36),
+                // Firestoreにユーザー情報を保存
+                log('💾 Firestoreにユーザー情報を保存中...');
+                await db.collection('users').doc(user.uid).set({
                     email: email,
-                    password: btoa(password + 'salt'),
                     role: 'user',
-                    createdAt: new Date().toISOString()
-                };
+                    created_at: new Date().toISOString(),
+                    displayName: email.split('@')[0]
+                });
                 
-                users.push(newUser);
-                localStorage.setItem('firebaseUsers', JSON.stringify(users));
-                
-                log('Registration successful');
-                alert('Account created successfully! You can now login.');
+                log('✅ 登録完了');
+                alert('✅ アカウントが作成されました！ログインページに移動します。');
                 window.location.href = 'login.html';
                 
             } catch (error) {
-                log('Registration error: ' + error.message, 'error');
-                alert('Registration failed: ' + error.message);
+                log('❌ 登録エラー: ' + error.message, 'error');
+                let errorMessage = 'アカウント作成に失敗しました: ';
+                
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage += 'このメールアドレスは既に登録されています。';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage += 'メールアドレスの形式が無効です。';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage += 'パスワードが弱すぎます。';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+                
+                alert(errorMessage);
             } finally {
                 if (registerBtn) {
                     registerBtn.textContent = 'Create Account';
                     registerBtn.disabled = false;
                 }
             }
-        };
-        
-        // Email validation function
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
         }
         
-        // Registration process
+        // イベントリスナーの設定
         document.addEventListener('DOMContentLoaded', function() {
-            log('Register page loaded');
-            
-            // デモアカウントを作成
-            createDemoAccounts();
-            
-            // ページ読み込み完了を確認
-            log('Page fully loaded, setting up event listeners...');
+            log('📄 DOM読み込み完了');
             
             const registerForm = document.getElementById('registerForm');
             const registerBtn = document.getElementById('registerBtn');
             
             if (!registerForm) {
-                log('Register form not found!', 'error');
+                log('❌ 登録フォームが見つかりません', 'error');
                 return;
             }
             
             // Form submit event
             registerForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                log('Form submitted');
-                await window.handleRegistration();
+                log('📋 フォーム送信');
+                await handleRegistration();
             });
             
-            // Button click event (backup)
+            // Button click event
             if (registerBtn) {
                 registerBtn.addEventListener('click', async function(e) {
                     e.preventDefault();
-                    log('Button clicked');
-                    await window.handleRegistration();
+                    log('🖱️ ボタンクリック');
+                    await handleRegistration();
                 });
-                
-                // さらに確実にするため、onclickも設定
-                registerBtn.onclick = function(e) {
-                    e.preventDefault();
-                    log('Button onclick');
-                    window.handleRegistration();
-                };
             }
             
             // Password strength indicator
@@ -326,25 +326,19 @@
                 
                 if (strength <= 2) {
                     strengthFill.className = 'strength-fill strength-weak';
-                    strengthLabel = 'Weak';
+                    strengthLabel = '弱い';
                 } else if (strength <= 3) {
                     strengthFill.className = 'strength-fill strength-medium';
-                    strengthLabel = 'Medium';
+                    strengthLabel = '普通';
                 } else {
                     strengthFill.className = 'strength-fill strength-strong';
-                    strengthLabel = 'Strong';
+                    strengthLabel = '強い';
                 }
                 
                 strengthFill.style.width = (strength * 20) + '%';
-                strengthText.textContent = `Password strength: ${strengthLabel}`;
+                strengthText.textContent = `パスワード強度: ${strengthLabel}`;
             });
         });
-        
-        // Email validation function
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
     </script>
 </body>
 </html>
